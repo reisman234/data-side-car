@@ -1,8 +1,11 @@
-FROM alpine:latest
+FROM python:3.9-alpine
 
-RUN apk update && apk add curl \
-    && curl https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/bin/mc \
-    && chmod +x /usr/bin/mc
+RUN apk update
 
-WORKDIR /root/
-ADD save_result.sh /root/
+WORKDIR /opt/data-side-car/
+ADD requirements.txt /opt/data-side-car/
+RUN pip3 install -r requirements.txt
+
+ADD main.py /opt/data-side-car/
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9999"]
