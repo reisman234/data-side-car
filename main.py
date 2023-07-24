@@ -1,12 +1,14 @@
 import logging
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from minio import Minio
+# pylint: disable=E0611
 from pydantic import BaseModel
 from typing import List
 from os import listdir, stat, uname
 from os.path import join
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(levelname)s - %(name)s - %(message)s", level=logging.INFO)
 
 
 class MinioStoreInfo(BaseModel):
@@ -22,6 +24,11 @@ class WorkflowStoreInfo(BaseModel):
     destination_path: str
     result_directory: str = "/output"
     result_files: List[str]
+
+
+class StoreResult(BaseModel):
+    success: List[str] = list()
+    failed: List[str] = list()
 
 
 app = FastAPI()
@@ -46,16 +53,19 @@ async def store_result(store_info: WorkflowStoreInfo):
         secret_key=store_info.minio.secret_key,
         secure=store_info.minio.secure)
 
-    logging.info(f"""workflow store information received:\n
-                 \t{store_info.destination_bucket}\n
-                 \t{store_info.destination_path}\n
-                 \t{store_info.result_directory}\n
-                 \t{store_info.result_files}\n
-                 """)
+    logging.info("""workflow store information received:
+                 \tdestination_bucket: \t%s
+                 \tdestination_path: \t%s
+                 \tresult_directory: \t%s
+                 \tresult_files: \t%s
+                 """, store_info.destination_bucket, store_info.destination_path, store_info.result_directory,
+                 store_info.result_files)
+
     available_files = listdir(store_info.result_directory)
+    store_log = StoreResult()
     for filename in store_info.result_files:
         if filename in available_files:
-            logging.info(f"store file: {filename}")
+            logging.info("store file: %s", filename)
             filename_abs = join(store_info.result_directory, filename)
             file_length = stat(filename_abs).st_size
             file = open(filename_abs, mode="br")
@@ -64,5 +74,11 @@ async def store_result(store_info: WorkflowStoreInfo):
                 object_name=join(store_info.destination_path, filename),
                 data=file,
                 length=file_length)
+            store_log.success.append(filename)
         else:
-            logging.error(f"file not exists: {filename}")
+            logging.error("file not exists %s", filename)
+            store_log.failed.append(filename)
+
+    logging.info("store finished: %s", store_log)
+    
+    return JSONResponse(content=store_log)
