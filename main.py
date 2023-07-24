@@ -80,5 +80,5 @@ async def store_result(store_info: WorkflowStoreInfo):
             store_log.failed.append(filename)
 
     logging.info("store finished: %s", store_log)
-    
-    return JSONResponse(content=store_log)
+
+    return JSONResponse(content=store_log.json())
