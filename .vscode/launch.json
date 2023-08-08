@@ -17,6 +17,18 @@
             ],
             "jinja": true,
             "justMyCode": true
+        },
+        {
+            "name": "MiddleLayer: data-side-car input-init",
+            "type": "python",
+            "request": "launch",
+            "program": "init.py",
+            "env": {
+                "INPUT_INIT_CONFIG": "config/input-init.json",
+                "DATA_DESTINATION": "./data"
+            },
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ]
 }
