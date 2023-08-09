@@ -24,7 +24,7 @@ class WorkflowInputResource(BaseModel):
     resource_name: str
     type:  ServiceResourceType
     storage_source: str
-    destination: str
+    mount_path: Union[str, None] = None
     description: str
 
 
@@ -32,6 +32,10 @@ class ServiceResouce(BaseModel):
     resource_name: str
     type: ServiceResourceType
     description: str
+
+
+class InputServiceResource(ServiceResouce):
+    mount_path: Union[str, None] = None
 
 
 class WorkflowResource(BaseModel):
@@ -44,7 +48,7 @@ class WorkflowResource(BaseModel):
 
 class ServiceDescription(BaseModel):
     service_id: str
-    inputs: List[ServiceResouce]
+    inputs: List[InputServiceResource]
     outputs: List[ServiceResouce]
     workflow_resource: WorkflowResource
 
