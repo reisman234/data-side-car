@@ -11,7 +11,6 @@ from typing import List
 import os
 from os import listdir, uname
 from os.path import join
-import boto3
 import typing
 
 import models
